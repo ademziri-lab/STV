@@ -8,14 +8,19 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-"format": "prettier --write ."
+    "format": "prettier --write ."
   },
   "dependencies": {
+    "@sanity/image-url": "^2.2.0",
+    "@sanity/vision": "^5.31.2",
     "clsx": "^2.1.1",
     "motion": "^14.14.0",
     "next": "16.4.6",
+    "next-sanity": "^13.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "sanity": "^5.31.2",
+    "styled-components": "^6.6.0",
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
@@ -30,5 +35,4 @@
     "tailwindcss": "4.3.3",
     "typescript": "^5"
   }
-  
 }
