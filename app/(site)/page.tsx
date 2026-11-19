@@ -1,25 +1,41 @@
-import Image from 'next/image'
+import type { Metadata } from 'next'
+import { BannerCarousel } from '@/components/sections/banner-carousel'
+import { BrandsStrip } from '@/components/sections/brands-strip'
+import { ContactCta } from '@/components/sections/contact-cta'
+import { FeaturedCategories } from '@/components/sections/featured-categories'
+import { FeaturedProducts } from '@/components/sections/featured-products'
+import { Hero } from '@/components/sections/hero'
+import { site } from '@/lib/site'
+import {
+  getBanners,
+  getBrands,
+  getCategories,
+  getFeaturedProducts,
+  getSiteSettings,
+} from '@/sanity/lib/fetchers'
 
-export default function Home() {
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings()
+  return { description: settings?.description ?? site.description }
+}
+
+export default async function HomePage() {
+  const [settings, banners, categories, featured, brands] = await Promise.all([
+    getSiteSettings(),
+    getBanners(),
+    getCategories(),
+    getFeaturedProducts(6),
+    getBrands(),
+  ])
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-surface px-4">
-      <Image
-        src="/images/stv-logo.png"
-        alt="STV, Société Tunisienne de Ventilation"
-        width={280}
-        height={280}
-        priority
-        className="h-auto w-64"
-      />
-      <h1 className="font-display text-3xl font-bold text-brand-900">
-        Catalogue de ventilation
-      </h1>
-      <p className="max-w-md text-center text-brand-700">
-        Test de la fondation du projet : thème, polices et logo.
-      </p>
-      <button className="rounded-lg bg-brand-600 px-5 py-2.5 font-medium text-white transition-colors hover:bg-brand-700">
-        Bouton de test
-      </button>
-    </main>
+    <>
+      <BannerCarousel banners={banners} />
+      <Hero settings={settings} />
+      <FeaturedCategories categories={categories} />
+      <FeaturedProducts products={featured} />
+      <BrandsStrip brands={brands} />
+      <ContactCta phone={settings?.phone ?? site.phone} />
+    </>
   )
 }

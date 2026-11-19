@@ -13,7 +13,15 @@ import {apiVersion, dataset, projectId} from './sanity/env'
 import {schema} from './sanity/schemaTypes'
 import {structure} from './sanity/structure'
 
+// Documents that must exist only once
+const singletonTypes = ['siteSettings', 'aboutPage']
+
+// The only actions allowed on those documents
+const singletonActions = new Set(['publish', 'discardChanges', 'restore'])
+
 export default defineConfig({
+  name: 'default',
+  title: 'STV Catalogue',
   basePath: '/studio',
   projectId,
   dataset,
@@ -21,8 +29,21 @@ export default defineConfig({
   schema,
   plugins: [
     structureTool({structure}),
-    // Vision is for querying with GROQ from inside the Studio
-    // https://www.sanity.io/docs/the-vision-plugin
-    visionTool({defaultApiVersion: apiVersion}),
+    // Vision (GROQ playground) is for developers, so it only shows locally
+    ...(process.env.NODE_ENV === 'development'
+      ? [visionTool({defaultApiVersion: apiVersion})]
+      : []),
   ],
+  document: {
+    // Remove the single pages from the "+" create menu
+    newDocumentOptions: (prev, {creationContext}) =>
+      creationContext.type === 'global'
+        ? prev.filter((template) => !singletonTypes.includes(template.templateId))
+        : prev,
+    // Remove delete, unpublish and duplicate on the single pages
+    actions: (prev, {schemaType}) =>
+      singletonTypes.includes(schemaType)
+        ? prev.filter(({action}) => action && singletonActions.has(action))
+        : prev,
+  },
 })

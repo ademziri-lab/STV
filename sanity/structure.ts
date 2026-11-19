@@ -1,7 +1,30 @@
-import type {StructureResolver} from 'sanity/structure'
+import type { StructureResolver } from 'sanity/structure'
 
-// https://www.sanity.io/docs/structure-builder-cheat-sheet
 export const structure: StructureResolver = (S) =>
   S.list()
-    .title('Content')
-    .items(S.documentTypeListItems())
+    .title('Contenu')
+    .items([
+      S.documentTypeListItem('product').title('Produits'),
+      S.documentTypeListItem('category').title('Catégories'),
+      S.documentTypeListItem('brand').title('Marques'),
+            S.documentTypeListItem('banner').title('Bannières'),
+      S.divider(),
+      S.listItem()
+        .title('Page À propos')
+        .id('aboutPage')
+        .child(
+          S.document()
+            .schemaType('aboutPage')
+            .documentId('aboutPage')
+            .title('Page À propos'),
+        ),
+      S.listItem()
+        .title('Paramètres du site')
+        .id('siteSettings')
+        .child(
+          S.document()
+            .schemaType('siteSettings')
+            .documentId('siteSettings')
+            .title('Paramètres du site'),
+        ),
+    ])
