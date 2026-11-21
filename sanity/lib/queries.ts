@@ -70,3 +70,51 @@ export const bannersQuery = `*[_type == "banner" && active == true
   "link": link->{ "type": _type, "slug": slug.current },
   linkToContact
 }`
+
+const productFilter = `_type == "product"
+  && ($category == "" || category->slug.current == $category || category->parent->slug.current == $category)
+  && ($brand == "" || brand->slug.current == $brand)
+  && ($q == "" || name match $q || sku match $q || shortDescription match $q
+      || category->title match $q || brand->name match $q)`
+
+export const productsQuery = `{
+  "items": *[${productFilter}] | order(lower(name) asc) [$start...$end] {
+    ${productCardFields}
+  },
+  "total": count(*[${productFilter}])
+}`
+
+export const categoryBySlugQuery = `*[_type == "category" && slug.current == $slug][0]{
+  _id, title, "slug": slug.current, description,
+  "image": image${image},
+  "parent": parent->{ title, "slug": slug.current },
+  "productCount": count(*[_type == "product" && (category._ref == ^._id || category->parent._ref == ^._id)]),
+  "children": *[_type == "category" && parent._ref == ^._id]
+    | order(order asc, title asc) {
+      _id, title, "slug": slug.current, description,
+      "image": image${image},
+      "productCount": count(*[_type == "product" && category._ref == ^._id])
+    }
+}`
+
+export const categorySlugsQuery = `*[_type == "category" && defined(slug.current)].slug.current`
+
+export const productBySlugQuery = `*[_type == "product" && slug.current == $slug][0]{
+  _id, name, "slug": slug.current, sku, shortDescription,
+  description,
+  "images": images[]${image},
+  specifications[]{ label, value },
+  "documents": documents[]{ title, "url": file.asset->url, "size": file.asset->size },
+  manufacturerUrl, seoTitle, seoDescription,
+  "category": category->{
+    title, "slug": slug.current,
+    "parent": parent->{ title, "slug": slug.current }
+  },
+  "brand": brand->{ name, "slug": slug.current },
+  "related": *[_type == "product" && _id != ^._id && category._ref == ^.category._ref]
+    | order(_createdAt desc) [0...3] {
+      ${productCardFields}
+    }
+}`
+
+export const productSlugsQuery = `*[_type == "product" && defined(slug.current)].slug.current`

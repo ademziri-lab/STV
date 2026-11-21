@@ -9,12 +9,14 @@ import { Button } from '@/components/ui/button'
 import { Container } from '@/components/ui/container'
 import { navLinks, site } from '@/lib/site'
 import { cn } from '@/lib/utils'
+import { SanityImage } from '@/components/ui/sanity-image'
+import type { SanityImage as SanityImageData } from '@/types/sanity'
 
 function isActive(pathname: string, href: string) {
   return href === '/' ? pathname === '/' : pathname.startsWith(href)
 }
 
-export function Header() {
+export function Header({ logo }: { logo: SanityImageData | null }) {
   const pathname = usePathname()
   const reduceMotion = useReducedMotion()
 
@@ -36,14 +38,24 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
       <Container className="flex h-16 items-center justify-between gap-6">
         <Link href="/" aria-label={`${site.name}, retour à l’accueil`}>
-          <Image
-            src="/images/stv-logo.png"
-            alt={site.fullName}
-            width={200}
-            height={64}
-            priority
-            className="h-12 w-auto"
-          />
+                    {logo ? (
+            <SanityImage
+              image={logo}
+              alt={site.fullName}
+              sizes="200px"
+              priority
+              className="h-12 w-auto"
+            />
+          ) : (
+            <Image
+              src="/images/stv-logo.png"
+              alt={site.fullName}
+              width={200}
+              height={64}
+              priority
+              className="h-12 w-auto"
+            />
+          )}
         </Link>
 
         <nav aria-label="Navigation principale" className="hidden md:block">

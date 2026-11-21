@@ -1,3 +1,5 @@
+import type { PortableTextBlock } from '@portabletext/types'
+
 export type SanityImage = {
   alt: string
   url: string
@@ -7,7 +9,7 @@ export type SanityImage = {
 }
 
 // Rich text from the Studio. We give it a real type when we render it (Step 11).
-export type RichText = unknown[]
+export type RichText = PortableTextBlock[]
 
 export type ProductCard = {
   _id: string
@@ -77,4 +79,49 @@ export type Banner = {
   mobileImage: SanityImage | null
   link: { type: 'product' | 'category'; slug: string } | null
   linkToContact: boolean | null
+}
+export type ProductList = {
+  items: ProductCard[]
+  total: number
+}
+export type CategoryDetailChild = {
+  _id: string
+  title: string
+  slug: string
+  description: string | null
+  image: SanityImage | null
+  productCount: number
+}
+
+export type CategoryDetail = {
+  _id: string
+  title: string
+  slug: string
+  description: string | null
+  image: SanityImage | null
+  parent: { title: string; slug: string } | null
+  productCount: number
+  children: CategoryDetailChild[]
+}
+
+export type ProductDetail = {
+  _id: string
+  name: string
+  slug: string
+  sku: string | null
+  shortDescription: string
+  description: RichText | null
+  images: SanityImage[] | null
+  specifications: { label: string; value: string }[] | null
+  documents: { title: string; url: string | null; size: number | null }[] | null
+  manufacturerUrl: string | null
+  seoTitle: string | null
+  seoDescription: string | null
+  category: {
+    title: string
+    slug: string
+    parent: { title: string; slug: string } | null
+  } | null
+  brand: { name: string; slug: string } | null
+  related: ProductCard[]
 }
