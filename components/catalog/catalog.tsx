@@ -1,77 +1,54 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   catalogHref,
   PAGE_SIZE,
   parseCatalogParams,
-  type CatalogParams,
   type RawParams,
 } from '@/lib/catalog'
-import { getBrands, getCategories, getProducts } from '@/sanity/lib/fetchers'
-import type { Category } from '@/types/sanity'
-import { CatalogFilters } from './catalog-filters'
-import { FiltersPanel } from './filters-panel'
+import { getProducts } from '@/sanity/lib/fetchers'
 import { Pagination } from './pagination'
 import { ProductCard } from './product-card'
-
-function categoryTitle(categories: Category[], slug: string) {
-  for (const category of categories) {
-    if (category.slug === slug) return category.title
-    const child = category.children.find((item) => item.slug === slug)
-    if (child) return child.title
-  }
-  return slug
-}
 
 export async function Catalog({
   searchParams,
 }: {
   searchParams: Promise<RawParams>
 }) {
-  const raw = parseCatalogParams(await searchParams)
-  const [categories, brands] = await Promise.all([getCategories(), getBrands()])
-
-  const knownCategories = new Set(
-    categories.flatMap((c) => [c.slug, ...c.children.map((child) => child.slug)]),
-  )
-  const knownBrands = new Set(brands.map((brand) => brand.slug))
-
-  const params: CatalogParams = {
-    ...raw,
-    category: knownCategories.has(raw.category) ? raw.category : '',
-    brand: knownBrands.has(raw.brand) ? raw.brand : '',
+  // Le catalogue ne propose que la recherche : catégorie et marque sont ignorées
+  const params = {
+    ...parseCatalogParams(await searchParams),
+    category: '',
+    brand: '',
   }
 
   const { items, total } = await getProducts(params)
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
-  const chips = [
-    params.q && {
-      label: `« ${params.q} »`,
-      href: catalogHref({ ...params, q: '', page: 1 }),
-    },
-    params.category && {
-      label: categoryTitle(categories, params.category),
-      href: catalogHref({ ...params, category: '', page: 1 }),
-    },
-    params.brand && {
-      label: brands.find((b) => b.slug === params.brand)?.name ?? params.brand,
-      href: catalogHref({ ...params, brand: '', page: 1 }),
-    },
-  ].filter((chip): chip is { label: string; href: string } => Boolean(chip))
-
   return (
-    <div className="mt-10 grid gap-10 lg:grid-cols-[17rem_1fr]">
-      <aside aria-label="Recherche et filtres">
-        <FiltersPanel
-          key={`${params.q}|${params.category}|${params.brand}`}
-          activeCount={chips.length}
-        >
-          <CatalogFilters categories={categories} brands={brands} params={params} />
-        </FiltersPanel>
-      </aside>
+    <div className="mt-10">
+      <form
+        key={params.q}
+        action="/produits"
+        method="get"
+        role="search"
+        className="flex flex-col gap-3 sm:flex-row sm:items-end"
+      >
+        <div className="flex-1">
+          <Input
+            label="Rechercher un produit"
+            name="q"
+            type="search"
+            defaultValue={params.q}
+            placeholder="Nom ou référence"
+            maxLength={60}
+          />
+        </div>
+        <Button type="submit">Rechercher</Button>
+      </form>
 
-      <section aria-labelledby="resultats">
+      <section aria-labelledby="resultats" className="mt-8">
         <h2 id="resultats" className="sr-only">
           Résultats
         </h2>
@@ -79,37 +56,22 @@ export async function Catalog({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p role="status" className="text-sm text-slate-600">
             {total} produit{total > 1 ? 's' : ''}
+            {params.q && <> pour « {params.q} »</>}
             {totalPages > 1 && ` · page ${params.page} sur ${totalPages}`}
           </p>
-          {chips.length > 0 && (
-            <ul className="flex flex-wrap items-center gap-2">
-              {chips.map((chip) => (
-                <li key={chip.href}>
-                  <Link
-                    href={chip.href}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-brand-100 px-3 py-1 text-sm font-medium text-brand-900 transition-colors hover:bg-brand-200"
-                  >
-                    {chip.label}
-                    <span aria-hidden="true">×</span>
-                    <span className="sr-only"> (retirer ce filtre)</span>
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <Link
-                  href="/produits"
-                  className="text-sm font-medium text-brand-700 underline-offset-4 hover:underline"
-                >
-                  Tout effacer
-                </Link>
-              </li>
-            </ul>
+          {params.q && (
+            <Link
+              href="/produits"
+              className="text-sm font-medium text-brand-700 underline-offset-4 hover:underline"
+            >
+              Effacer la recherche
+            </Link>
           )}
         </div>
 
         {items.length > 0 ? (
           <>
-            <ul className="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {items.map((product) => (
                 <li key={product._id} className="h-full">
                   <ProductCard product={product} />
@@ -127,20 +89,26 @@ export async function Catalog({
             <p className="font-display text-lg font-bold text-ink">
               {total > 0
                 ? 'Cette page n’existe pas.'
-                : 'Aucun produit ne correspond à votre recherche.'}
+                : params.q
+                  ? 'Aucun produit ne correspond à votre recherche.'
+                  : 'Aucun produit pour le moment.'}
             </p>
             <p className="mt-2 text-slate-600">
               {total > 0
                 ? 'Revenez à la première page des résultats.'
-                : 'Essayez avec d’autres mots, ou retirez un filtre.'}
+                : params.q
+                  ? 'Essayez avec d’autres mots.'
+                  : 'Revenez bientôt, le catalogue est en cours de mise à jour.'}
             </p>
-            <Button
-              href={total > 0 ? catalogHref({ ...params, page: 1 }) : '/produits'}
-              variant="outline"
-              className="mt-6"
-            >
-              {total > 0 ? 'Première page' : 'Réinitialiser la recherche'}
-            </Button>
+            {(total > 0 || params.q) && (
+              <Button
+                href={total > 0 ? catalogHref({ ...params, page: 1 }) : '/produits'}
+                variant="outline"
+                className="mt-6"
+              >
+                {total > 0 ? 'Première page' : 'Effacer la recherche'}
+              </Button>
+            )}
           </div>
         )}
       </section>
@@ -151,10 +119,10 @@ export async function Catalog({
 // Affiché pendant le chargement des résultats
 export function CatalogSkeleton() {
   return (
-    <div className="mt-10 grid gap-10 lg:grid-cols-[17rem_1fr]" aria-busy="true">
-      <div className="hidden h-96 rounded-2xl bg-slate-100 motion-safe:animate-pulse lg:block" />
-      <ul className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 6 }, (_, i) => (
+    <div className="mt-10" aria-busy="true">
+      <div className="h-20 rounded-2xl bg-slate-100 motion-safe:animate-pulse" />
+      <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 8 }, (_, i) => (
           <li
             key={i}
             className="h-72 rounded-2xl bg-slate-100 motion-safe:animate-pulse"

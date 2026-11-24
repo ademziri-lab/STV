@@ -16,16 +16,16 @@ export const bannerType = defineType({
     defineField({
       name: 'desktopImage',
       title: 'Image pour ordinateur',
-      description:
-        'Format conseillé : 1920 × 700 pixels (JPG ou PNG). Le texte de la promotion doit être dans l’image.',
+            description:
+        'Format obligatoire : 1920 × 240 pixels (JPG ou PNG). Bande très large : écrivez un texte court et gros, qui reste lisible une fois l’image réduite. Le texte de la promotion doit être dans l’image.',
       type: 'image',
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'mobileImage',
-      title: 'Image pour téléphone (facultatif)',
+           title: 'Image pour téléphone (recommandée)',
       description:
-        'Format conseillé : 800 × 800 pixels. Si vous n’en mettez pas, l’image pour ordinateur est utilisée sur téléphone.',
+        'Format : 800 × 200 pixels. Gardez le bas de l’image sans texte (de petits points de navigation s’y affichent). Sans cette image, l’image pour ordinateur est utilisée et devient minuscule sur téléphone.',
       type: 'image',
     }),
     defineField({
