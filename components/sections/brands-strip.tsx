@@ -1,7 +1,9 @@
+import Link from 'next/link'
 import { Container } from '@/components/ui/container'
 import { Reveal } from '@/components/ui/reveal'
 import { SanityImage } from '@/components/ui/sanity-image'
 import { SectionHeading } from '@/components/ui/section-heading'
+import { catalogHref } from '@/lib/catalog'
 import type { Brand } from '@/types/sanity'
 
 const linkClass =
@@ -22,23 +24,22 @@ export function BrandsStrip({ brands }: { brands: Brand[] }) {
         <Reveal>
           <ul className="mt-10 flex flex-wrap items-center justify-center gap-x-12 gap-y-8">
             {visible.map((brand) => {
-              // Avec un lien, le nom est lu par le lien. Sans lien, par l'image.
-              const content = (alt: string) =>
-                brand.logo ? (
-                  <div className="relative h-12 w-32">
-                    <SanityImage
-                      image={brand.logo}
-                      alt={alt}
-                      fill
-                      sizes="128px"
-                      className="object-contain"
-                    />
-                  </div>
-                ) : (
-                  <span className="font-display text-lg font-bold text-slate-600">
-                    {brand.name}
-                  </span>
-                )
+              // Le nom est lu par le lien : le logo est purement décoratif
+              const content = brand.logo ? (
+                <div className="relative h-12 w-32">
+                  <SanityImage
+                    image={brand.logo}
+                    alt=""
+                    fill
+                    sizes="128px"
+                    className="object-contain"
+                  />
+                </div>
+              ) : (
+                <span className="font-display text-lg font-bold text-slate-600">
+                  {brand.name}
+                </span>
+              )
 
               return (
                 <li key={brand._id}>
@@ -50,10 +51,16 @@ export function BrandsStrip({ brands }: { brands: Brand[] }) {
                       aria-label={`Visiter le site de ${brand.name} (nouvel onglet)`}
                       className={linkClass}
                     >
-                      {content('')}
+                      {content}
                     </a>
                   ) : (
-                    <div className="opacity-70 grayscale">{content(brand.name)}</div>
+                    <Link
+                      href={catalogHref({ brand: brand.slug })}
+                      aria-label={`Voir les produits ${brand.name}`}
+                      className={linkClass}
+                    >
+                      {content}
+                    </Link>
                   )}
                 </li>
               )

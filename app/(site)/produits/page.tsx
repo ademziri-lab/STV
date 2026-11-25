@@ -24,7 +24,7 @@ export default function ProductsPage({
         as="h1"
         eyebrow="Catalogue"
         title="Nos produits"
-                description="Recherchez un produit par son nom ou sa référence."
+                        description="Recherchez un produit par son nom ou sa référence, ou filtrez par marque."
       />
       <Suspense fallback={<CatalogSkeleton />}>
         <Catalog searchParams={searchParams} />

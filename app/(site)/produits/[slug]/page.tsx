@@ -134,7 +134,11 @@ export default async function ProductPage({ params }: Props) {
 
             <div>
               <div className="flex flex-wrap gap-2">
-                                {brand && <Badge>{brand.name}</Badge>}
+                                                {brand && (
+                  <Link href={catalogHref({ brand: brand.slug })}>
+                    <Badge>{brand.name}</Badge>
+                  </Link>
+                )}
                 {category && (
                   <Link href={`/categories/${category.slug}`}>
                     <Badge variant="neutral">{category.title}</Badge>
